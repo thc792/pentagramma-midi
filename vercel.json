@@ -1,5 +1,16 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "Dockerfile",
+      "use": "@vercel/node",
+      "config": { "includeFiles": "api/**" } 
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
+    }
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
