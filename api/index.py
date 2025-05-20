@@ -1,3 +1,5 @@
+# api/index.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from music21 import converter, stream, note, chord, duration
@@ -13,16 +15,19 @@ DEFAULT_PPQ = 480
 
 app = Flask(__name__)
 # Configurazione CORS per Vercel:
+# Aggiornato per riflettere i path con /api/ se necessario per la granularità,
+# ma r"/api/*" dovrebbe già coprire tutto ciò che inizia con /api/
 CORS(app, resources={r"/api/*": {"origins": "*"}}) # Permette tutte le origini per /api/*
 
-@app.route('/', methods=['GET'])
+@app.route('/api/', methods=['GET']) # MODIFICATO: Aggiunto /api/
 def handle_root_redirect_to_api():
-    # Questo endpoint sarà accessibile come /api/ (se Vercel mappa index.py a /api/)
+    # Questo endpoint sarà accessibile come /api/
     return "Backend music21 (API) attivo. L'endpoint principale è /api/process_midi."
 
-@app.route('/process_midi', methods=['POST'])
+@app.route('/api/process_midi', methods=['POST']) # MODIFICATO: Aggiunto /api/
 def process_midi():
-    print("\n--- Ricevuta richiesta POST su /api/process_midi (vista da Flask come /process_midi) ---")
+    # Modificato il messaggio di log per riflettere il path completo che Flask vede
+    print("\n--- Ricevuta richiesta POST su /api/process_midi (vista da Flask come /api/process_midi) ---")
 
     data = request.json
     if not data or 'midiData' not in data or not data['midiData']:
@@ -48,9 +53,7 @@ def process_midi():
             print("Analisi MIDI con music21 completata dai byte.")
         except Exception as parse_byte_e:
             print(f"ATTENZIONE: Fallita analisi music21 da byte: {parse_byte_e}. Provo con file temporaneo.")
-            # Vercel Serverless Functions hanno accesso a un filesystem temporaneo (/tmp)
-            # Usare tempfile.gettempdir() è più portabile, ma /tmp è comune in ambienti Linux serverless
-            temp_dir = tempfile.gettempdir() # In Vercel dovrebbe essere /tmp
+            temp_dir = tempfile.gettempdir()
             with tempfile.NamedTemporaryFile(delete=False, suffix='.mid', mode='wb', dir=temp_dir) as temp_file:
                 temp_file.write(midi_bytes)
                 temp_file_path = temp_file.name
@@ -102,14 +105,10 @@ def process_midi():
 
         if found_qpm is not None:
             extracted_metadata['tempo'] = int(60000000 / found_qpm)
-            # print(f"DEBUG: Tempo estratto: {found_qpm} QPM ({extracted_metadata['tempo']} micros/QN)") # Rimosso per ridurre i log
         else:
-            extracted_metadata['tempo'] = 500000
-            # print(f"ATTENZIONE: Tempo non trovato. Uso default: 120 QPM ({extracted_metadata['tempo']} micros/QN)") # Rimosso per ridurre i log
-        
-        extracted_metadata['ppq'] = DEFAULT_PPQ
-        # print(f"DEBUG: PPQ usato (default): {DEFAULT_PPQ}") # Rimosso per ridurre i log
+            extracted_metadata['tempo'] = 500000 # Default a 120 QPM
 
+        extracted_metadata['ppq'] = DEFAULT_PPQ
 
         for element in midi_stream.flat.notesAndRests:
             try:
@@ -121,7 +120,6 @@ def process_midi():
                 duration_ticks = 1
 
             if isinstance(element, note.Note):
-                # ... (logica estrazione nota singola come prima)
                 accidental_type = None
                 if element.pitch and element.pitch.accidental:
                     try:
@@ -153,7 +151,6 @@ def process_midi():
                 note_id_counter += 1
 
             elif isinstance(element, chord.Chord):
-                # ... (logica estrazione note da accordo come prima)
                 for single_note_in_chord in element.notes:
                     accidental_type = None
                     if single_note_in_chord.pitch and single_note_in_chord.pitch.accidental:
@@ -186,15 +183,13 @@ def process_midi():
                     note_id_counter += 1
 
         extracted_notes_list.sort(key=lambda x: (x['ticks'], x.get('midi', 0)))
-        # print(f"Estrazione completata. Trovate {len(extracted_notes_list)} note individuali/d'accordo.") # Rimosso per ridurre i log
         response_data = { "metadata": extracted_metadata, "allParsedNotes": extracted_notes_list }
-        # print("Risposta JSON per il frontend preparata.") # Rimosso per ridurre i log
         return jsonify(response_data)
 
     except Exception as e:
         print(f"\n!!! Errore CRITICO durante l'elaborazione MIDI nel backend: {e}")
         traceback.print_exc()
-        error_response = { "error": f"Errore interno del server durante l'elaborazione MIDI: {str(e)}", "detail": traceback.format_exc() } # Convertito 'e' a stringa
+        error_response = { "error": f"Errore interno del server durante l'elaborazione MIDI: {str(e)}", "detail": traceback.format_exc() }
         print("Invio risposta di errore 500 al frontend.")
         return jsonify(error_response), 500
 
@@ -202,8 +197,9 @@ def process_midi():
         if temp_file_path and os.path.exists(temp_file_path):
             try:
                 os.remove(temp_file_path)
-                # print(f"DEBUG: File temporaneo cancellato: {temp_file_path}") # Rimosso per ridurre i log
             except Exception as e:
                 print(f"ATTENZIONE: Impossibile cancellare file temporaneo {temp_file_path}: {e}")
 
-# Nessuna chiamata app.run() qui sotto
+# Nessuna chiamata app.run() qui sotto, Gunicorn si occuperà di eseguire l'app.
+# if __name__ == '__main__':
+#     app.run(debug=True) # Questa riga è utile per test locali, ma non per Gunicorn su Vercel
