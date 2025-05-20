@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Midigram - Esercitatore MIDI</title>
+
+    <!-- Link al file CSS esterno -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librerie esterne -->
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.3/build/cjs/vexflow.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <h1>Midigram - Visualizzatore ed Esercitatore MIDI</h1>
+
+    <div class="controls">
+        <input type="file" id="midi-file-input" accept=".mid,.midi">
+        <button id="play-button" disabled>Inizia Esercizio</button>
+        <button id="stop-button" disabled>Ferma Esercizio</button>
+    </div>
+
+    <div class="status">
+        <p id="playback-status">Carica un file MIDI.</p>
+        <p id="accuracy-display">Accuratezza: N/A</p>
+    </div>
+
+    <div class="controls">
+        <label for="speed-slider">Velocità (simulata):</label>
+        <input type="range" id="speed-slider" min="1" max="10" value="5" disabled>
+        <span id="speed-value">Normale</span>
+    </div>
+
+    <div id="pentagramma-container">
+        <!-- VexFlow disegnerà qui -->
+    </div>
+
+    <div class="export-options">
+        <button id="export-png-button" disabled>Esporta come PNG</button>
+        <button id="export-exercise-button" disabled>Esporta Dati Esercizio (.js)</button>
+    </div>
+
+    <!-- Link allo script JavaScript principale -->
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+/* public/style.css */
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+#pentagramma-container {
+    width: 90%; /* O una larghezza fissa se preferisci */
+    max-width: 1200px; /* Limita la larghezza massima */
+    height: 500px; /* Altezza iniziale, potrebbe essere gestita dinamicamente */
+    overflow: auto; /* Abilita lo scroll se il contenuto è più grande */
+    border: 1px solid #ccc;
+    margin: 20px auto; /* Centra il contenitore */
+    background-color: white;
+}
+
+.controls, .status, .export-options {
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+button, input[type="file"] {
+    margin: 5px;
+    padding: 8px 12px;
+}
+
+#speed-slider {
+    width: 200px;
+}
+
+.current-note-highlight path {
+    fill: orange !important;
+    stroke: darkorange !important;
+}
+
+.correct-note path {
+    fill: lightgreen !important;
+}
+
+.incorrect-note-flash path {
+    animation: flash-red 0.5s;
+}
+
+@keyframes flash-red {
+    0%, 100% {
+        fill: red !important;
+    }
+    50% {
+        fill: inherit; /* o il colore originale */
+    }
+}
