@@ -2,9 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "Dockerfile",
-      "use": "@vercel/node",
-      "config": { "includeFiles": "api/**" } 
+      "src": "Dockerfile" 
     },
     {
       "src": "public/**",
